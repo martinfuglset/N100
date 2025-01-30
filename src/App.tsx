@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
   Background,
   useNodesState,
@@ -13,8 +13,13 @@ import ReactFlow, {
 } from 'reactflow';
 import TableNode from './components/TableNode';
 import PlotNode from './components/PlotNode';
-import { FaTable, FaChartLine } from 'react-icons/fa';
+import ContextMenu from './components/ContextMenu';
+import { CiViewTable } from 'react-icons/ci';
+import { VscGraphLine } from 'react-icons/vsc';
+import TextNode from './components/TextNode';
+import { TbTextResize } from 'react-icons/tb';
 import 'reactflow/dist/style.css';
+import { RoomProvider, useOthers, useUpdateMyPresence } from './liveblocks.config';
 
 type TableData = {
   headers: string[];
@@ -24,6 +29,7 @@ type TableData = {
 const nodeTypes: NodeTypes = {
   tableNode: TableNode,
   plotNode: PlotNode,
+  textNode: TextNode,
 };
 
 const initialTableData: TableData = {
@@ -38,52 +44,52 @@ const initialTableData: TableData = {
 };
 
 function App() {
-  const [tableData, setTableData] = useState<TableData>(initialTableData);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    JSON.parse(localStorage.getItem('flowNodes') || '[]')
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    JSON.parse(localStorage.getItem('flowEdges') || '[]')
+  );
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string; type: 'node' | 'edge' } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('flowNodes', JSON.stringify(nodes));
+    localStorage.setItem('flowEdges', JSON.stringify(edges));
+  }, [nodes, edges]);
 
   const updateTableData = (nodeId: string, newData: TableData) => {
-    setNodes((nds) =>
-      nds.map((node) => {
+    setNodes((nds) => {
+      const updatedNodes = nds.map((node) => {
         if (node.id === nodeId) {
-          // Update the source node
-          const updatedNode = {
+          return {
             ...node,
             data: {
               ...node.data,
               tableData: newData,
             },
           };
-          
-          // Find all connected target nodes and update their data
-          edges.forEach((edge) => {
-            if (edge.source === nodeId) {
-              const targetNode = nds.find((n) => n.id === edge.target);
-              if (targetNode && targetNode.type === 'plotNode') {
-                targetNode.data = {
-                  ...targetNode.data,
-                  tableData: newData,
-                };
+        }
+        const connectedEdge = edges.find(e => e.source === nodeId && e.target === node.id);
+        if (connectedEdge && node.type === 'plotNode') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              tableData: newData,
+              plotType: node.data.plotType || 'line',
+              onUpdate: (newData: any) => {
+                setNodes(nds => nds.map(n => 
+                  n.id === node.id ? { ...n, data: { ...n.data, ...newData } } : n
+                ));
               }
-            }
-          });
-          
-          return updatedNode;
+            },
+          };
         }
         return node;
-      })
-    );
+      });
+      return updatedNodes;
+    });
   };
-
-  const initialNodes: Node[] = [
-    { id: '1', type: 'tableNode', position: { x: 100, y: 100 }, data: { tableData: { ...initialTableData }, onUpdate: (newData: TableData) => updateTableData('1', newData) } },
-    { 
-      id: '2', 
-      type: 'plotNode', 
-      position: { x: 400, y: 100 }, 
-      data: { 
-        tableData: { ...initialTableData }
-      } 
-    },
-  ];
 
   const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY }: EdgeProps) => {
     const [edgePath] = getBezierPath({
@@ -91,83 +97,87 @@ function App() {
       sourceY,
       targetX,
       targetY,
+      curvature: 0.3
     });
 
-    const onEdgeClick = (evt: React.MouseEvent<SVGGElement, MouseEvent>, id: string) => {
-      evt.stopPropagation();
-      const edge = edges.find(e => e.id === id);
-      if (edge) {
-        const targetNode = nodes.find(n => n.id === edge.target);
-        if (targetNode && targetNode.type === 'plotNode') {
-          setNodes(nds => nds.map(node => {
-            if (node.id === edge.target) {
-              return {
-                ...node,
-                data: {
-                  ...node.data,
-                  tableData: { headers: [], rows: [] }
-                }
-              };
-            }
-            return node;
-          }));
-        }
-      }
-      setEdges((eds) => eds.filter((e) => e.id !== id));
+    const onEdgeContextMenu = (evt: React.MouseEvent<SVGGElement, MouseEvent>, id: string) => {
+      evt.preventDefault();
+      setContextMenu({ x: evt.clientX, y: evt.clientY, id, type: 'edge' });
     };
 
     return (
-      <g onClick={(e) => onEdgeClick(e, id)} style={{ cursor: 'pointer' }}>
+      <g onContextMenu={(e) => onEdgeContextMenu(e, id)}>
         <path
           id={id}
           className="react-flow__edge-path"
           d={edgePath}
-          strokeWidth={2}
-          stroke="#b1b1b7"
+          strokeWidth={1}
+          stroke="#DDDDDD"
+          strokeDasharray="none"
+          style={{
+            transition: 'stroke-width 0.2s, stroke 0.2s',
+            animation: 'flowPathAnimation 1.5s linear infinite'
+          }}
         />
       </g>
     );
+  };
+
+  const onNodeContextMenu = (event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, id: node.id, type: 'node' });
+  };
+
+  const handleDelete = () => {
+    if (!contextMenu) return;
+
+    if (contextMenu.type === 'edge') {
+      setEdges((eds) => eds.filter((e) => e.id !== contextMenu.id));
+    } else {
+      setNodes((nds) => nds.filter((n) => n.id !== contextMenu.id));
+      setEdges((eds) => eds.filter((e) => e.source !== contextMenu.id && e.target !== contextMenu.id));
+    }
+    setContextMenu(null);
   };
 
   const edgeTypes = {
     default: CustomEdge,
   };
 
-  const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2' },
-  ];
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
   const onConnect = useCallback(
     (connection: Connection) => {
-      // First add the edge
-      setEdges((eds) => addEdge(connection, eds));
-      
-      // Then update the target node with the source node's data
-      const sourceNode = nodes.find(n => n.id === connection.source);
-      const targetNode = nodes.find(n => n.id === connection.target);
-      
-      if (sourceNode && targetNode && targetNode.type === 'plotNode') {
-        setNodes(nds => nds.map(node => {
-          if (node.id === targetNode.id) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                tableData: sourceNode.data.tableData
-              }
-            };
-          }
-          return node;
-        }));
-      }
+      setEdges((eds) => {
+        const newEdges = addEdge(connection, eds);
+        const sourceNode = nodes.find(n => n.id === connection.source);
+        const targetNode = nodes.find(n => n.id === connection.target);
+
+        if (sourceNode?.type === 'tableNode' && targetNode?.type === 'plotNode') {
+          setNodes(nds => nds.map(node => {
+            if (node.id === connection.target) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  tableData: sourceNode.data.tableData,
+                  plotType: node.data.plotType || 'line',
+                  onUpdate: (newData: any) => {
+                    setNodes(ns => ns.map(n => 
+                      n.id === node.id ? { ...n, data: { ...n.data, ...newData } } : n
+                    ));
+                  }
+                }
+              };
+            }
+            return node;
+          }));
+        }
+        return newEdges;
+      });
     },
-    [setEdges, nodes, setNodes],
+    [nodes, setNodes]
   );
 
-  const addNode = (type: 'tableNode' | 'plotNode') => {
+  const addNode = (type: 'tableNode' | 'plotNode' | 'textNode') => {
     const nodeId = `${nodes.length + 1}`;
     const newNode = {
       id: nodeId,
@@ -175,13 +185,56 @@ function App() {
       position: { x: window.innerWidth / 2 - 100, y: window.innerHeight / 2 - 100 },
       data: type === 'tableNode' 
         ? { tableData: { ...initialTableData }, onUpdate: (newData: TableData) => updateTableData(nodeId, newData) }
-        : { tableData: { ...initialTableData } }
+        : type === 'plotNode'
+        ? { 
+            tableData: { ...initialTableData }, 
+            plotType: 'line', 
+            onUpdate: (newData: any) => {
+              setNodes(nds => nds.map(n => 
+                n.id === nodeId ? { ...n, data: { ...n.data, ...newData } } : n
+              ));
+            }
+          }
+        : {
+            text: '',
+            onUpdate: (newData: any) => {
+              setNodes(nds => nds.map(n => 
+                n.id === nodeId ? { ...n, data: { ...n.data, ...newData } } : n
+              ));
+            }
+          }
     };
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const others = useOthers();
+  const updateMyPresence = useUpdateMyPresence();
+
+  useEffect(() => {
+    const updateMousePosition = (e: MouseEvent) => {
+      updateMyPresence({
+        cursor: { x: e.clientX, y: e.clientY },
+        username: 'user1'
+      });
+    };
+
+    window.addEventListener('mousemove', updateMousePosition);
+    return () => window.removeEventListener('mousemove', updateMousePosition);
+  }, [updateMyPresence]);
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {others.map(({ presence }) => {
+        if (!presence?.cursor) return null;
+        return (
+          <div key={presence.username} style={{ position: 'absolute', left: presence.cursor.x, top: presence.cursor.y, pointerEvents: 'none', transform: 'translate(-50%, -50%)' }}>
+            <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '16px solid #4299e1', transform: 'rotate(45deg)' }} />
+            <div style={{ position: 'absolute', fontSize: '12px', color: '#4299e1', transform: 'translate(8px, 8px)', fontWeight: 500 }}>
+              {presence.username}
+            </div>
+          </div>
+        );
+      })}
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -190,10 +243,37 @@ function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeContextMenu={onNodeContextMenu}
         fitView
+        style={{ background: '#f8f8f8' }}
+        proOptions={{ hideAttribution: true }}
       >
         <Background />
+        {nodes.length === 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#6b7280',
+              fontSize: '1.2rem',
+              fontWeight: 500,
+              userSelect: 'none'
+            }}
+          >
+            Place a node to get started
+          </div>
+        )}
       </ReactFlow>
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onDelete={handleDelete}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
       <div
         style={{
           position: 'absolute',
@@ -201,10 +281,10 @@ function App() {
           left: '50%',
           transform: 'translateX(-50%)',
           background: 'rgba(255, 255, 255, 0.9)',
-          padding: '8px',
-          borderRadius: '5px',
+          padding: '12px 16px',
+          borderRadius: '12px',
           display: 'flex',
-          gap: '8px',
+          gap: '12px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}
       >
@@ -214,19 +294,25 @@ function App() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '8px',
+            padding: '10px',
             border: '1px solid #ccc',
-            borderRadius: '4px',
+            borderRadius: '8px',
             background: 'white',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            ':hover': {
-              background: '#f0f0f0',
-              transform: 'scale(1.05)'
-            }
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#00F';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = '#4b5563';
           }}
         >
-          <FaTable size={20} />
+          <CiViewTable size={20} color="#4b5563" />
         </button>
         <button
           onClick={() => addNode('plotNode')}
@@ -234,23 +320,61 @@ function App() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '8px',
+            padding: '10px',
             border: '1px solid #ccc',
-            borderRadius: '4px',
+            borderRadius: '8px',
             background: 'white',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            ':hover': {
-              background: '#f0f0f0',
-              transform: 'scale(1.05)'
-            }
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#00F';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = '#666';
           }}
         >
-          <FaChartLine size={20} />
+          <VscGraphLine size={20} color="#666" />
+        </button>
+        <button
+          onClick={() => addNode('textNode')}
+          title="Add Text"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#00F';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+            const svg = e.currentTarget.querySelector('svg');
+            if (svg) svg.style.color = '#666';
+          }}
+        >
+          <TbTextResize size={20} color="#666" />
         </button>
       </div>
     </div>
   );
 }
 
-export default App;
+export default function LiveblocksProvider() {
+  return (
+    <RoomProvider id="my-flow-app" initialPresence={{ cursor: null, username: 'user1' }}>
+      <App />
+    </RoomProvider>
+  );
+}

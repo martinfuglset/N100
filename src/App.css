@@ -1,7 +1,8 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
   text-align: center;
 }
 
@@ -39,4 +40,20 @@
 
 .read-the-docs {
   color: #888;
+}
+
+@keyframes flowPathAnimation {
+  0% {
+    stroke-dasharray: 10;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 10;
+    stroke-dashoffset: -20;
+  }
+}
+
+.react-flow__edge-path:hover {
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 3px rgba(136, 132, 216, 0.5));
 }
