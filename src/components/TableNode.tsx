@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { CiViewTable } from 'react-icons/ci';
+import { GoDatabase } from 'react-icons/go';
+import { FaTable, FaGoogleDrive } from 'react-icons/fa';
+import { BsInputCursorText } from 'react-icons/bs';
 import { NodeWrapper } from './NodeWrapper';
+import { DataSourceSelect } from './DataSourceSelect';
 
 type TableData = {
   headers: string[];
@@ -12,8 +16,24 @@ type TableNodeData = {
   onUpdate?: (data: TableData) => void;
 };
 
+const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>, onUpdate: ((data: TableData) => void) | undefined) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const rows = text.split('\n').map(row => row.split(','));
+      const headers = rows[0];
+      const dataRows = rows.slice(1);
+      onUpdate?.({ headers, rows: dataRows });
+    };
+    reader.readAsText(file);
+  }
+};
+
 const TableNode = ({ data }: NodeProps<TableNodeData>) => {
   const { tableData } = data;
+  const [selectedSource, setSelectedSource] = useState('manual');
 
   const addColumn = () => {
     const newHeader = `Column ${tableData.headers.length + 1}`;
@@ -45,8 +65,20 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
     data.onUpdate?.({ ...tableData, headers: newHeaders });
   };
 
+  const dataSourceSelect = (
+    <DataSourceSelect
+      selectedSource={selectedSource}
+      onSourceChange={setSelectedSource}
+      onDataUpdate={data.onUpdate}
+    />
+  );
+
   return (
-    <NodeWrapper icon={<CiViewTable size={20} color="#4b5563" />}>
+    <NodeWrapper 
+      icon={<GoDatabase size={20} color="#4b5563" />} 
+      nodeType="Data"
+      dataSourceSelect={dataSourceSelect}
+    >
       <Handle type="source" position={Position.Right} style={{ background: '#DDDDDD', border: '1px solid #DDDDDD' }} />
       <div style={{ position: 'relative' }}>
         <div style={{ overflowX: 'auto', marginBottom: '8px' }}>
@@ -56,8 +88,8 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                 {tableData.headers.map((header, index) => (
                   <th key={index} style={{ 
                     borderBottom: '2px solid #e5e7eb',
-                    padding: '8px',
-                    background: '#f9fafb'
+                    padding: '4px',
+                    background: 'transparent'
                   }}>
                     <input
                       type="text"
@@ -67,9 +99,10 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                         width: '100%', 
                         border: 'none', 
                         background: 'transparent',
-                        padding: '4px', 
-                        fontWeight: '600',
-                        color: '#374151'
+                        padding: '2px', 
+                        color: '#4b5563',
+                        fontSize: '14px',
+                        fontWeight: 500
                       }}
                     />
                   </th>
@@ -101,7 +134,7 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                   {row.map((cell, colIndex) => (
                     <td key={colIndex} style={{ 
                       borderBottom: '1px solid #e5e7eb',
-                      padding: '8px'
+                      padding: '4px'
                     }}>
                       <input
                         type="text"
@@ -111,7 +144,8 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                           width: '100%', 
                           border: 'none', 
                           padding: '4px',
-                          color: '#4b5563'
+                          color: '#4b5563',
+                          fontSize: '14px'
                         }}
                       />
                     </td>

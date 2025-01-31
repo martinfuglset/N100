@@ -21,7 +21,6 @@ const TextNode = ({ data }: NodeProps<TextNodeData>) => {
           background: 'transparent',
           resize: 'both',
           fontFamily: 'inherit',
-          fontSize: '14px',
           lineHeight: '1.5',
           color: '#4b5563',
           outline: 'none'

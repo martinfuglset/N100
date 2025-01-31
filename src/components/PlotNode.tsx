@@ -3,17 +3,8 @@ import { VscGraphLine, VscGraphScatter } from 'react-icons/vsc';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 import { useMemo } from 'react';
 import { NodeWrapper } from './NodeWrapper';
-
-type TableData = {
-  headers: string[];
-  rows: string[][];
-};
-
-type PlotNodeData = {
-  tableData: TableData;
-  plotType: 'line' | 'scatter';
-  onUpdate: (data: Partial<PlotNodeData>) => void;
-};
+import { chartConfig } from '../config/chartConfig';
+import { PlotNodeData } from '../types';
 
 const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
   const { tableData, plotType = 'line', onUpdate } = data;
@@ -29,7 +20,7 @@ const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
   }, [tableData?.rows]);
 
   return (
-    <NodeWrapper icon={<VscGraphLine size={20} color="#666" />}>
+    <NodeWrapper icon={<VscGraphLine size={20} color="#666" />} nodeType="Plot">
       <Handle type="target" position={Position.Left} style={{ background: '#DDDDDD', border: '1px solid #DDDDDD' }} />
       <div style={{ display: 'flex', gap: '5px', marginBottom: '16px' }}>
         <button
@@ -61,33 +52,23 @@ const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
           <VscGraphScatter size={16} />
         </button>
       </div>
-      <div style={{ width: '100%', height: '200px' }}>
+      <div style={chartConfig.container}>
         <ResponsiveContainer>
           {plotType === 'line' ? (
-            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#8884d8" 
-                activeDot={{ r: 8 }} 
-                dot={false} 
-              />
+            <LineChart data={chartData} margin={chartConfig.line.margin}>
+              <CartesianGrid strokeDasharray={chartConfig.line.gridDash} />
+              <XAxis dataKey="name" tick={{ fontSize: 'inherit' }} />
+              <YAxis tick={{ fontSize: 'inherit' }} />
+              <Tooltip contentStyle={{ fontSize: 'inherit' }} />
+              <Line {...chartConfig.line.lineStyle} dataKey="value" />
             </LineChart>
           ) : (
-            <ScatterChart margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" type="category" />
-              <YAxis dataKey="value" />
-              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-              <Scatter 
-                data={chartData} 
-                fill="#8884d8"
-                line={false}
-              />
+            <ScatterChart margin={chartConfig.scatter.margin}>
+              <CartesianGrid strokeDasharray={chartConfig.scatter.gridDash} />
+              <XAxis dataKey="name" type="category" tick={{ fontSize: 'inherit' }} />
+              <YAxis dataKey="value" tick={{ fontSize: 'inherit' }} />
+              <Tooltip contentStyle={{ fontSize: 'inherit' }} cursor={{ strokeDasharray: '3 3' }} />
+              <Scatter data={chartData} {...chartConfig.scatter.pointStyle} />
             </ScatterChart>
           )}
         </ResponsiveContainer>
