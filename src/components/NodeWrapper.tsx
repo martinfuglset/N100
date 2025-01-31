@@ -32,7 +32,7 @@ export const NodeWrapper = ({ children, icon, nodeType, dataSourceSelect }: Node
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {icon}
-          <span style={{ color: '#4b5563', fontWeight: 500, fontSize: '12px' }}>{nodeType}</span>
+          <span style={{ color: '#4b5563', fontWeight: 500 }}>{nodeType}</span>
         </div>
         {dataSourceSelect && (
           <div style={{ marginLeft: 'auto' }}>

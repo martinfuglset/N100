@@ -35,7 +35,6 @@ export const DataSourceSelect = ({ selectedSource, onSourceChange, onDataUpdate 
           background: 'transparent',
           color: '#4b5563',
           fontFamily: 'inherit',
-          fontSize: '14px',
           cursor: 'pointer',
           appearance: 'none',
           WebkitAppearance: 'none',

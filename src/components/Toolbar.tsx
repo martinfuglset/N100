@@ -1,7 +1,7 @@
 import { CiViewTable } from 'react-icons/ci';
 import { VscGraphLine } from 'react-icons/vsc';
 import { TbTextResize } from 'react-icons/tb';
-import { nodeStyles } from '../styles/components';
+import styles from '../styles/nodeStyles.module.css';
 
 type ToolbarProps = {
   onAddNode: (type: 'tableNode' | 'plotNode' | 'textNode') => void;
@@ -28,51 +28,21 @@ export const Toolbar = ({ onAddNode }: ToolbarProps) => {
       <button
         onClick={() => onAddNode('tableNode')}
         title="Add Table"
-        style={nodeStyles.button.base}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.hover.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = nodeStyles.button.hover.color;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.base.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = '#4b5563';
-        }}
+        className={styles.toolbarButton}
       >
         <CiViewTable size={20} color="#4b5563" />
       </button>
       <button
         onClick={() => onAddNode('plotNode')}
         title="Add Plot"
-        style={nodeStyles.button.base}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.hover.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = nodeStyles.button.hover.color;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.base.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = '#666';
-        }}
+        className={styles.toolbarButton}
       >
         <VscGraphLine size={20} color="#666" />
       </button>
       <button
         onClick={() => onAddNode('textNode')}
         title="Add Text"
-        style={nodeStyles.button.base}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.hover.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = nodeStyles.button.hover.color;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = nodeStyles.button.base.background;
-          const svg = e.currentTarget.querySelector('svg');
-          if (svg) svg.style.color = '#666';
-        }}
+        className={styles.toolbarButton}
       >
         <TbTextResize size={20} color="#666" />
       </button>

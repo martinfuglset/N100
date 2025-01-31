@@ -12,8 +12,8 @@ export type TableNodeData = {
 
 export type PlotNodeData = {
   tableData: TableData;
-  plotType: 'line' | 'scatter';
-  onUpdate: (data: Partial<PlotNodeData>) => void;
+  plotType: string;
+  onUpdate: (data: Partial<{ tableData: TableData; plotType: string }>) => void;
 };
 
 export type TextNodeData = {

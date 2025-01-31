@@ -5,7 +5,7 @@ export const chartConfig = {
     margin: { top: 5, right: 20, bottom: 5, left: 0 },
     gridDash: '3 3',
     lineStyle: {
-      type: 'monotone',
+      type: 'monotone' as const,
       stroke: '#8884d8',
       activeDot: { r: 8 },
       dot: false
@@ -21,7 +21,7 @@ export const chartConfig = {
   },
   container: {
     width: '100%',
-    height: 'calc(100vw * 9/16)',
-    maxHeight: '169px'
+    height: '169px',
+    aspectRatio: '16/9'
   } as CSSProperties
 };

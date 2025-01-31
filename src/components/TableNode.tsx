@@ -88,8 +88,8 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                 {tableData.headers.map((header, index) => (
                   <th key={index} style={{ 
                     borderBottom: '2px solid #e5e7eb',
-                    padding: '4px',
-                    background: 'transparent'
+                    padding: '8px',
+                    background: '#f9fafb'
                   }}>
                     <input
                       type="text"
@@ -99,10 +99,10 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                         width: '100%', 
                         border: 'none', 
                         background: 'transparent',
-                        padding: '2px', 
+                        padding: '4px', 
                         color: '#4b5563',
-                        fontSize: '14px',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        width: '100%'
                       }}
                     />
                   </th>
@@ -134,7 +134,8 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                   {row.map((cell, colIndex) => (
                     <td key={colIndex} style={{ 
                       borderBottom: '1px solid #e5e7eb',
-                      padding: '4px'
+                      padding: '8px',
+                      background: 'white'
                     }}>
                       <input
                         type="text"
@@ -144,8 +145,7 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                           width: '100%', 
                           border: 'none', 
                           padding: '4px',
-                          color: '#4b5563',
-                          fontSize: '14px'
+                          color: '#4b5563'
                         }}
                       />
                     </td>

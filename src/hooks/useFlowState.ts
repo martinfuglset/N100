@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, Connection, addEdge } from 'reactflow';
-import { FlowState, TableData, NodeData } from '../types';
+import { FlowState, TableData, NodeData, PlotNodeData, TableNodeData } from '../types';
 
 export const useFlowState = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(
@@ -34,8 +34,8 @@ export const useFlowState = () => {
             data: {
               ...node.data,
               tableData: newData,
-              plotType: (node.data as any).plotType || 'line',
-              onUpdate: (newData: Partial<NodeData>) => {
+              plotType: (node.data as PlotNodeData).plotType || 'line',
+              onUpdate: (newData: Partial<PlotNodeData>) => {
                 setNodes(nds => nds.map(n => 
                   n.id === node.id ? { ...n, data: { ...n.data, ...newData } } : n
                 ));
@@ -56,15 +56,16 @@ export const useFlowState = () => {
         const targetNode = nodes.find(n => n.id === connection.target);
 
         if (sourceNode?.type === 'tableNode' && targetNode?.type === 'plotNode') {
+          const sourceData = (sourceNode.data as TableNodeData).tableData;
           setNodes(nds => nds.map(node => {
             if (node.id === connection.target) {
               return {
                 ...node,
                 data: {
                   ...node.data,
-                  tableData: (sourceNode.data as any).tableData,
-                  plotType: (node.data as any).plotType || 'line',
-                  onUpdate: (newData: Partial<NodeData>) => {
+                  tableData: sourceData,
+                  plotType: (node.data as PlotNodeData).plotType || 'line',
+                  onUpdate: (newData: Partial<PlotNodeData>) => {
                     setNodes(ns => ns.map(n => 
                       n.id === node.id ? { ...n, data: { ...n.data, ...newData } } : n
                     ));

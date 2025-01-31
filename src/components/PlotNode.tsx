@@ -6,6 +6,20 @@ import { NodeWrapper } from './NodeWrapper';
 import { chartConfig } from '../config/chartConfig';
 import { PlotNodeData } from '../types';
 
+type CurveType = 'linear' | 'basis' | 'monotone';
+
+interface ChartDataPoint {
+  name: string;
+  value: number;
+}
+
+interface LineStyleProps {
+  type: CurveType;
+  stroke: string;
+  activeDot: { r: number };
+  dot: boolean;
+}
+
 const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
   const { tableData, plotType = 'line', onUpdate } = data;
 
@@ -18,6 +32,8 @@ const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
       }))
       .filter(item => !isNaN(item.value));
   }, [tableData?.rows]);
+
+  const lineStyle: LineStyleProps = chartConfig.line.lineStyle as LineStyleProps;
 
   return (
     <NodeWrapper icon={<VscGraphLine size={20} color="#666" />} nodeType="Plot">
@@ -60,7 +76,7 @@ const PlotNode = ({ data }: NodeProps<PlotNodeData>) => {
               <XAxis dataKey="name" tick={{ fontSize: 'inherit' }} />
               <YAxis tick={{ fontSize: 'inherit' }} />
               <Tooltip contentStyle={{ fontSize: 'inherit' }} />
-              <Line {...chartConfig.line.lineStyle} dataKey="value" />
+              <Line {...lineStyle} dataKey="value" />
             </LineChart>
           ) : (
             <ScatterChart margin={chartConfig.scatter.margin}>

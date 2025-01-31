@@ -1,8 +1,9 @@
 .nodeWrapper {
   background: white;
-  border: 1px solid #DDDDDD;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   min-width: 250px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .nodeHeader {
@@ -10,10 +11,10 @@
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: #f3f4f6;
+  background: #f9fafb;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: 1px solid #DDDDDD;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .nodeType {
@@ -32,18 +33,44 @@
 }
 
 .plotButton {
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: all 0.2s ease;
 }
 
 .plotButtonActive {
   border: 2px solid #8884d8;
+  background: #f3f4f6;
 }
 
 .plotButtonInactive {
-  border: 1px solid #ccc;
+  border: 1px solid #e5e7eb;
+}
+
+.plotButtonInactive:hover {
+  border-color: #8884d8;
+  background: #f9fafb;
+}
+
+.toolbarButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.toolbarButton:hover {
+  background: #f3f4f6;
+  border-color: #8884d8;
 }
