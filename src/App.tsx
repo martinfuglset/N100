@@ -1,15 +1,9 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useState } from 'react';
 import ReactFlow, {
   Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Edge,
   Node,
   NodeTypes,
   EdgeProps,
-  getBezierPath,
 } from 'reactflow';
 import TableNode from './components/TableNode';
 import PlotNode from './components/PlotNode';
@@ -107,8 +101,14 @@ function App() {
     };
   
     const initialTableData: TableData = {
-      headers: ['Column 1'],
-      rows: [['']]
+      headers: ['Year', 'Annual Sales (M)'],
+      rows: [
+        ['2019', '150'],
+        ['2020', '142'],
+        ['2021', '168'],
+        ['2022', '185'],
+        ['2023', '210']
+      ]
     };
 
     type NodeDataType = {

@@ -1,34 +1,13 @@
 import { useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { GoDatabase } from 'react-icons/go';
-import { FaTable, FaGoogleDrive } from 'react-icons/fa';
-import { BsInputCursorText } from 'react-icons/bs';
 import { NodeWrapper } from './NodeWrapper';
 import { DataSourceSelect } from './DataSourceSelect';
-
-type TableData = {
-  headers: string[];
-  rows: string[][];
-};
+import { TableData } from '../types';
 
 type TableNodeData = {
   tableData: TableData;
   onUpdate?: (data: TableData) => void;
-};
-
-const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>, onUpdate: ((data: TableData) => void) | undefined) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const rows = text.split('\n').map(row => row.split(','));
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
-      onUpdate?.({ headers, rows: dataRows });
-    };
-    reader.readAsText(file);
-  }
 };
 
 const TableNode = ({ data }: NodeProps<TableNodeData>) => {
@@ -53,17 +32,7 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
     data.onUpdate?.(newData);
   };
 
-  const updateCell = (rowIndex: number, colIndex: number, value: string) => {
-    const newRows = [...tableData.rows];
-    newRows[rowIndex] = [...newRows[rowIndex]];
-    newRows[rowIndex][colIndex] = value;
-    data.onUpdate?.({ ...tableData, rows: newRows });
-  };
 
-  const updateHeader = (index: number, value: string) => {
-    const newHeaders = tableData.headers.map((header, i) => i === index ? value : header);
-    data.onUpdate?.({ ...tableData, headers: newHeaders });
-  };
 
   const dataSourceSelect = (
     <DataSourceSelect
@@ -94,9 +63,8 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                     <input
                       type="text"
                       value={header}
-                      onChange={(e) => updateHeader(index, e.target.value)}
+                      readOnly
                       style={{ 
-                        width: '100%', 
                         border: 'none', 
                         background: 'transparent',
                         padding: '4px', 
@@ -140,7 +108,7 @@ const TableNode = ({ data }: NodeProps<TableNodeData>) => {
                       <input
                         type="text"
                         value={cell}
-                        onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                        readOnly
                         style={{ 
                           width: '100%', 
                           border: 'none', 

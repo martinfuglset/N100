@@ -1,12 +1,5 @@
-import { BsInputCursorText } from 'react-icons/bs';
-import { FaTable, FaGoogleDrive } from 'react-icons/fa';
-import { TableData } from '../types';
-
-type DataSourceSelectProps = {
-  selectedSource: string;
-  onSourceChange: (source: string) => void;
-  onDataUpdate?: (data: TableData) => void;
-};
+import { FaTable } from 'react-icons/fa';
+import { DataSourceSelectProps } from './types';
 
 export const DataSourceSelect = ({ selectedSource, onSourceChange, onDataUpdate }: DataSourceSelectProps) => {
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,8 +23,6 @@ export const DataSourceSelect = ({ selectedSource, onSourceChange, onDataUpdate 
         value={selectedSource}
         style={{ 
           padding: '4px 8px',
-          border: '1px solid #e5e7eb',
-          borderRadius: '8px',
           background: 'transparent',
           color: '#4b5563',
           fontFamily: 'inherit',
@@ -57,8 +48,6 @@ export const DataSourceSelect = ({ selectedSource, onSourceChange, onDataUpdate 
           style={{
             marginTop: '8px',
             padding: '16px',
-            border: '2px dashed #e5e7eb',
-            borderRadius: '8px',
             textAlign: 'center',
             color: '#6b7280',
             cursor: 'pointer',
@@ -101,8 +90,6 @@ export const DataSourceSelect = ({ selectedSource, onSourceChange, onDataUpdate 
             style={{
               width: '100%',
               padding: '8px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
               color: '#4b5563',
               background: 'transparent'
             }}

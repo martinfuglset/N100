@@ -1,19 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useNodesState, useEdgesState, Connection, addEdge } from 'reactflow';
-import { FlowState, TableData, NodeData, PlotNodeData, TableNodeData } from '../types';
+import { TableData, PlotNodeData, TableNodeData } from '../types';
 
 export const useFlowState = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    JSON.parse(localStorage.getItem('flowNodes') || '[]')
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(
-    JSON.parse(localStorage.getItem('flowEdges') || '[]')
-  );
-
-  useEffect(() => {
-    localStorage.setItem('flowNodes', JSON.stringify(nodes));
-    localStorage.setItem('flowEdges', JSON.stringify(edges));
-  }, [nodes, edges]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const updateTableData = useCallback((nodeId: string, newData: TableData) => {
     setNodes((nds) => {
@@ -63,7 +54,7 @@ export const useFlowState = () => {
                 ...node,
                 data: {
                   ...node.data,
-                  tableData: sourceData,
+                  tableData: { ...sourceData },
                   plotType: (node.data as PlotNodeData).plotType || 'line',
                   onUpdate: (newData: Partial<PlotNodeData>) => {
                     setNodes(ns => ns.map(n => 
